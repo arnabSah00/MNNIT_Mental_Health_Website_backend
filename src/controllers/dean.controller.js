@@ -33,9 +33,12 @@ const getRequestStats = asyncHandler(async (req, res) => {
 // GET /dean/analytics  -> { byBranch, byStatus }
 const getDashboardAnalytics = asyncHandler(async (req, res) => {
   const byBranch = await query(`
-    SELECT COALESCE(u.branch, 'Unspecified') AS branch, COUNT(*) AS count
+    SELECT COALESCE(u.branch, 'Unspecified') AS branch,
+           u.user_type AS booker_type,
+           COUNT(*) AS count
     FROM appointments a JOIN users u ON u.id = a.booker_id
-    GROUP BY u.branch ORDER BY count DESC
+    GROUP BY u.branch, u.user_type
+    ORDER BY branch
   `)
   const byStatus = await query(`
     SELECT status, COUNT(*) AS count FROM appointments GROUP BY status
@@ -103,4 +106,32 @@ const generateReport = asyncHandler(async (req, res) => {
   res.json({ success: true, data: rows })
 })
 
-module.exports = { getRequestStats, getDashboardAnalytics, getTrends, generateReport }
+// Generalized appointments select (same shape the admin/counsellor use)
+const APPT_SELECT = `
+  SELECT
+    a.request_id,
+    a.appointment_date,
+    a.time_slot,
+    a.description,
+    a.status AS request_status,
+    a.action_performed,
+    a.resolution,
+    a.prescription,
+    u.name AS booker_name,
+    u.identifier AS registration_number,
+    u.user_type AS booker_type,
+    u.email AS booker_email,
+    u.branch,
+    c.name AS counsellor_name
+  FROM appointments a
+  JOIN users u ON u.id = a.booker_id
+  LEFT JOIN users c ON c.id = a.counsellor_id
+`
+
+// GET /dean/appointments  -> full list for the monitoring table (read-only)
+const getAllAppointments = asyncHandler(async (req, res) => {
+  const { rows } = await query(`${APPT_SELECT} ORDER BY a.appointment_date DESC, a.request_id DESC`)
+  res.json({ success: true, data: rows })
+})
+
+module.exports = { getRequestStats, getDashboardAnalytics, getTrends, generateReport, getAllAppointments }

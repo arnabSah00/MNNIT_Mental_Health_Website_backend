@@ -11,6 +11,7 @@ const APPT_SELECT = `
     a.status,
     a.action_performed,
     a.resolution,
+    a.prescription,
     u.name AS student_name,
     u.identifier AS registration_number,
     u.branch,

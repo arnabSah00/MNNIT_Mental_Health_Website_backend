@@ -17,10 +17,10 @@ INSERT INTO users (identifier, name, email, user_type, branch, password_hash) VA
   ('20BCS001', 'Aarav Sharma', '20bcs001@mnnit.ac.in', 'student', 'Computer Science',
     crypt('15-05-2002', gen_salt('bf'))),
 
-  ('faculty.demo@mnnit.ac.in', 'Dr. Ravi Verma', 'faculty.demo@mnnit.ac.in', 'faculty', NULL,
+  ('faculty.demo@mnnit.ac.in', 'Dr. Ravi Verma', 'faculty.demo@mnnit.ac.in', 'faculty', 'Electronics & Communication Engineering',
     crypt('01-01-1980', gen_salt('bf'))),
 
-  ('staff.demo@mnnit.ac.in', 'Sunita Devi', 'staff.demo@mnnit.ac.in', 'staff', NULL,
+  ('staff.demo@mnnit.ac.in', 'Sunita Devi', 'staff.demo@mnnit.ac.in', 'staff', 'Administration',
     crypt('20-08-1985', gen_salt('bf'))),
 
   ('counsellor@mnnit.ac.in', 'Dr. Kamlesh Kumar', 'counsellor@mnnit.ac.in', 'counsellor', NULL,

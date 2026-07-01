@@ -6,9 +6,15 @@ const APPT_SELECT = `
     a.request_id,
     a.appointment_date,
     a.time_slot,
+    a.description,
     a.status AS request_status,
-    u.name AS student_name,
+    a.action_performed,
+    a.resolution,
+    a.prescription,
+    u.name AS booker_name,
     u.identifier AS registration_number,
+    u.user_type AS booker_type,
+    u.email AS booker_email,
     u.branch,
     c.name AS counsellor_name
   FROM appointments a
@@ -79,7 +85,7 @@ const exportData = asyncHandler(async (req, res) => {
     return res.json({ success: true, data: rows })
   }
 
-  const header = ['request_id', 'student_name', 'registration_number', 'branch', 'appointment_date', 'time_slot', 'counsellor_name', 'request_status']
+  const header = ['request_id', 'booker_name', 'booker_type', 'registration_number', 'branch', 'appointment_date', 'time_slot', 'counsellor_name', 'request_status']
   const csvLines = [header.join(',')]
   for (const r of rows) {
     csvLines.push(header.map((h) => `"${(r[h] ?? '').toString().replace(/"/g, '""')}"`).join(','))

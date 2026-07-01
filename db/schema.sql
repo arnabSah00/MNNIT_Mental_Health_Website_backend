@@ -41,6 +41,7 @@ CREATE TABLE appointments (
   status               TEXT NOT NULL DEFAULT 'PENDING' CHECK (status IN ('PENDING','APPROVED','COMPLETED','REJECTED')),
   action_performed      TEXT,                 -- session notes, filled on completion
   resolution           TEXT CHECK (resolution IN ('RESOLVED','FOLLOW_UP','REFERRED')),
+  prescription         TEXT,                 -- doctor's prescription / advice, added by counsellor
   created_at           TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at           TIMESTAMPTZ NOT NULL DEFAULT now()
 );

@@ -4,14 +4,18 @@ const { asyncHandler } = require('../middleware/errorHandler')
 const APPT_SELECT = `
   SELECT
     a.request_id,
+    a.booker_id,
     a.appointment_date,
     a.time_slot,
     a.description,
     a.status,
     a.action_performed,
     a.resolution,
-    u.name AS student_name,
+    a.prescription,
+    u.name AS booker_name,
     u.identifier AS registration_number,
+    u.user_type AS booker_type,
+    u.email AS booker_email,
     u.branch,
     c.name AS counsellor_name
   FROM appointments a
@@ -82,7 +86,7 @@ const updateAppointment = asyncHandler(async (req, res) => {
 
 // POST /counsellor/appointments/:id/confirm   body: { action_performed, status } (Complete Session modal)
 const confirmBooking = asyncHandler(async (req, res) => {
-  const { action_performed, status } = req.body
+  const { action_performed, status, prescription } = req.body
   if (!action_performed || !action_performed.trim()) {
     return res.status(400).json({ success: false, message: 'Please add session notes.' })
   }
@@ -90,13 +94,53 @@ const confirmBooking = asyncHandler(async (req, res) => {
 
   const { rows } = await query(
     `UPDATE appointments
-     SET status = 'COMPLETED', resolution = $1, action_performed = $2, counsellor_id = $3, updated_at = now()
-     WHERE request_id = $4 RETURNING request_id`,
-    [resolution, action_performed, req.user.id, req.params.id]
+     SET status = 'COMPLETED', resolution = $1, action_performed = $2, prescription = COALESCE($3, prescription), counsellor_id = $4, updated_at = now()
+     WHERE request_id = $5 RETURNING request_id`,
+    [resolution, action_performed, prescription ?? null, req.user.id, req.params.id]
   )
   if (!rows[0]) return res.status(400).json({ success: false, message: 'Failed to complete. Try again.' })
 
   res.json({ success: true, message: 'Session marked as completed!' })
 })
 
-module.exports = { getProfile, updateProfile, getPendingRequests, getSolvedRequests, getAppointmentById, updateAppointment, confirmBooking }
+// GET /counsellor/bookers/:bookerId/history
+const getBookerHistory = asyncHandler(async (req, res) => {
+  const { rows } = await query(
+    `${APPT_SELECT} WHERE a.booker_id = $1 ORDER BY a.appointment_date DESC, a.request_id DESC`,
+    [req.params.bookerId]
+  )
+  res.json({ success: true, data: rows })
+})
+
+// PUT /counsellor/appointments/:id/status   body: { status }
+const updateStatus = asyncHandler(async (req, res) => {
+  const { status } = req.body
+  if (!['PENDING', 'APPROVED', 'COMPLETED', 'REJECTED'].includes(status)) {
+    return res.status(400).json({ success: false, message: 'Invalid status.' })
+  }
+  const { rows } = await query(
+    `UPDATE appointments SET status = $1, counsellor_id = $2, updated_at = now()
+     WHERE request_id = $3 RETURNING request_id`,
+    [status, req.user.id, req.params.id]
+  )
+  if (!rows[0]) return res.status(400).json({ success: false, message: 'Failed to update status.' })
+  res.json({ success: true, message: 'Status updated to ' + status + '.' })
+})
+
+// PUT /counsellor/appointments/:id/prescription   body: { prescription, action_performed }
+const savePrescription = asyncHandler(async (req, res) => {
+  const { prescription, action_performed } = req.body
+  const { rows } = await query(
+    `UPDATE appointments
+     SET prescription = COALESCE($1, prescription),
+         action_performed = COALESCE($2, action_performed),
+         counsellor_id = $3,
+         updated_at = now()
+     WHERE request_id = $4 RETURNING request_id`,
+    [prescription ?? null, action_performed ?? null, req.user.id, req.params.id]
+  )
+  if (!rows[0]) return res.status(400).json({ success: false, message: 'Failed to save prescription.' })
+  res.json({ success: true, message: 'Prescription saved.' })
+})
+
+module.exports = { getProfile, updateProfile, getPendingRequests, getSolvedRequests, getAppointmentById, updateAppointment, confirmBooking, getBookerHistory, updateStatus, savePrescription }

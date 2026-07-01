@@ -13,4 +13,8 @@ router.get('/appointments/:id', ctrl.getAppointmentById)
 router.put('/appointments/:id', ctrl.updateAppointment)
 router.post('/appointments/:id/confirm', ctrl.confirmBooking)
 
+router.get('/bookers/:bookerId/history', ctrl.getBookerHistory)
+router.put('/appointments/:id/status', ctrl.updateStatus)
+router.put('/appointments/:id/prescription', ctrl.savePrescription)
+
 module.exports = router
