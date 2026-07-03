@@ -13,7 +13,7 @@ const useConnectionString = !!process.env.DATABASE_URL
 const pool = useConnectionString
   ? new Pool({
       connectionString: process.env.DATABASE_URL,
-      ssl: process.env.PG_SSL === 'true' ? { rejectUnauthorized: false } : false
+      ssl: { rejectUnauthorized: false }
     })
   : new Pool({
       host: process.env.PGHOST || 'localhost',
