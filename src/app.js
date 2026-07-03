@@ -17,7 +17,7 @@ const app = express()
 // then the deployed Netlify site, then local dev.
 const allowedOrigins = [
   process.env.FRONTEND_ORIGIN,
-  'https://startling-sprinkles-9d7f10.netlify.app',
+  'https://mnnit-mhc.netlify.app/',
   'http://localhost:5173'
 ].filter(Boolean)
 
